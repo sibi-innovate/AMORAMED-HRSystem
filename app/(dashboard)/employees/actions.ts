@@ -124,7 +124,11 @@ export async function deleteDocument(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
 
-  await supabase.storage.from('employee-documents').remove([filePath])
+  const { error: storageError } = await supabase.storage.from('employee-documents').remove([filePath])
+  // Proceed if the file is already gone (not found); abort on other errors
+  if (storageError && !storageError.message.includes('not found')) {
+    return { error: storageError.message }
+  }
   const { error } = await supabase.from('employee_documents').delete().eq('id', docId)
   if (error) return { error: error.message }
 
@@ -136,6 +140,8 @@ export async function getSignedDocumentUrl(
   filePath: string,
 ): Promise<{ url?: string; error?: string }> {
   const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Unauthorized' }
   const { data, error } = await supabase.storage
     .from('employee-documents')
     .createSignedUrl(filePath, 3600)

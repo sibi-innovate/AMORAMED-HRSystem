@@ -6,12 +6,18 @@ const {
   mockEq,
   mockGetUser,
   mockFrom,
+  mockUpload,
+  mockStorageRemove,
+  mockStorageInsert,
 } = vi.hoisted(() => ({
   mockInsert: vi.fn(),
   mockUpdate: vi.fn().mockReturnThis(),
   mockEq: vi.fn(),
   mockGetUser: vi.fn(),
   mockFrom: vi.fn(),
+  mockUpload: vi.fn(),
+  mockStorageRemove: vi.fn(),
+  mockStorageInsert: vi.fn(),
 }))
 
 vi.mock('@/lib/supabase/server', () => ({
@@ -23,7 +29,7 @@ vi.mock('@/lib/supabase/server', () => ({
 
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }))
 
-import { createEmployee, updateEmployee } from '../actions'
+import { createEmployee, updateEmployee, uploadDocument, deleteDocument, getSignedDocumentUrl } from '../actions'
 
 describe('createEmployee', () => {
   beforeEach(() => {
@@ -89,5 +95,61 @@ describe('updateEmployee', () => {
     expect(mockUpdate).toHaveBeenCalledOnce()
     expect(mockEq).toHaveBeenCalledWith('id', 'emp-1')
     expect(result).toEqual({})
+  })
+})
+
+describe('uploadDocument', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } })
+  })
+
+  it('returns error when not authenticated', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: null } })
+    const result = await uploadDocument('emp-1', new FormData())
+    expect(result).toEqual({ error: 'Unauthorized' })
+  })
+
+  it('returns error when no file provided', async () => {
+    const fd = new FormData()
+    fd.set('label', 'Resume')
+    // no 'file' key
+    const result = await uploadDocument('emp-1', fd)
+    expect(result).toEqual({ error: 'No file selected' })
+  })
+
+  it('returns error when label is missing', async () => {
+    const file = new File(['content'], 'test.pdf', { type: 'application/pdf' })
+    const fd = new FormData()
+    fd.set('file', file)
+    // no 'label' key
+    const result = await uploadDocument('emp-1', fd)
+    expect(result).toEqual({ error: 'Label is required' })
+  })
+})
+
+describe('deleteDocument', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } })
+  })
+
+  it('returns error when not authenticated', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: null } })
+    const result = await deleteDocument('doc-1', 'emp-1/file.pdf', 'emp-1')
+    expect(result).toEqual({ error: 'Unauthorized' })
+  })
+})
+
+describe('getSignedDocumentUrl', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } })
+  })
+
+  it('returns error when not authenticated', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: null } })
+    const result = await getSignedDocumentUrl('emp-1/file.pdf')
+    expect(result).toEqual({ error: 'Unauthorized' })
   })
 })
