@@ -14,3 +14,9 @@ create policy "authenticated_can_delete"
 on storage.objects for delete
 to authenticated
 using (bucket_id = 'employee-documents');
+
+create policy "authenticated_can_update"
+on storage.objects for update
+to authenticated
+using (bucket_id = 'employee-documents')
+with check (bucket_id = 'employee-documents');
