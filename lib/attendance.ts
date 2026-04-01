@@ -4,8 +4,12 @@ import { AttendanceStatus } from '@/types/database.types'
  * Converts a time string (HH:MM format) to minutes since midnight
  * @param time Time string in HH:MM format (e.g., "07:00", "16:30")
  * @returns Number of minutes since midnight
+ * @throws Error if time is falsy, empty, or doesn't match HH:MM format
  */
 export function parseTimeToMinutes(time: string): number {
+  if (!time || !/^\d{1,2}:\d{2}$/.test(time)) {
+    throw new Error(`Invalid time format: "${time}"`)
+  }
   const [hours, minutes] = time.split(':').map(Number)
   return hours * 60 + minutes
 }
@@ -56,30 +60,34 @@ export function computeAttendanceFields(
   let overtime_hours = 0
   let is_overtime = false
 
-  // Parse times - they should never be null for present/half_day statuses in normal usage,
-  // but handle gracefully
-  const timeInMinutes = timeIn ? parseTimeToMinutes(timeIn) : SHIFT_START
-  const timeOutMinutes = timeOut ? parseTimeToMinutes(timeOut) : SHIFT_END
-
   // Calculate tardiness (only for present and half_day_am)
   if (status === 'present' || status === 'half_day_am') {
-    if (timeInMinutes > SHIFT_START) {
-      tardiness_minutes = timeInMinutes - SHIFT_START
+    if (timeIn) {
+      const timeInMinutes = parseTimeToMinutes(timeIn)
+      if (timeInMinutes > SHIFT_START) {
+        tardiness_minutes = timeInMinutes - SHIFT_START
+      }
     }
   }
 
   // Calculate undertime (only for present and half_day_pm)
   if (status === 'present' || status === 'half_day_pm') {
-    if (timeOutMinutes < SHIFT_END) {
-      undertime_minutes = SHIFT_END - timeOutMinutes
+    if (timeOut) {
+      const timeOutMinutes = parseTimeToMinutes(timeOut)
+      if (timeOutMinutes < SHIFT_END) {
+        undertime_minutes = SHIFT_END - timeOutMinutes
+      }
     }
   }
 
   // Calculate overtime (applies to all active statuses)
-  if (timeOutMinutes > SHIFT_END) {
-    const overtimeMinutes = timeOutMinutes - SHIFT_END
-    overtime_hours = overtimeMinutes / 60
-    is_overtime = true
+  if (timeOut) {
+    const timeOutMinutes = parseTimeToMinutes(timeOut)
+    if (timeOutMinutes > SHIFT_END) {
+      const overtimeMinutes = timeOutMinutes - SHIFT_END
+      overtime_hours = Math.round((overtimeMinutes / 60) * 100) / 100
+      is_overtime = true
+    }
   }
 
   return {
