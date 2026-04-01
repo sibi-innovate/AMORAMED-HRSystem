@@ -126,6 +126,25 @@ describe('uploadDocument', () => {
     const result = await uploadDocument('emp-1', fd)
     expect(result).toEqual({ error: 'Label is required' })
   })
+
+  it('returns error for disallowed file type', async () => {
+    const file = new File(['content'], 'malware.exe', { type: 'application/x-msdownload' })
+    const fd = new FormData()
+    fd.set('file', file)
+    fd.set('label', 'Resume')
+    const result = await uploadDocument('emp-1', fd)
+    expect(result).toEqual({ error: 'Only PDF, JPEG, PNG, and Word documents are allowed' })
+  })
+
+  it('returns error when file exceeds 10 MB', async () => {
+    const bigContent = new Uint8Array(11 * 1024 * 1024)
+    const file = new File([bigContent], 'big.pdf', { type: 'application/pdf' })
+    const fd = new FormData()
+    fd.set('file', file)
+    fd.set('label', 'Lab Result')
+    const result = await uploadDocument('emp-1', fd)
+    expect(result).toEqual({ error: 'File must be 10 MB or smaller' })
+  })
 })
 
 describe('deleteDocument', () => {

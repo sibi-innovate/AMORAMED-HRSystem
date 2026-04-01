@@ -91,6 +91,21 @@ export async function uploadDocument(
   if (!file || file.size === 0) return { error: 'No file selected' }
   if (!label) return { error: 'Label is required' }
 
+  const ALLOWED_TYPES = [
+    'application/pdf',
+    'image/jpeg',
+    'image/png',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  ]
+  const MAX_SIZE_BYTES = 10 * 1024 * 1024 // 10 MB
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    return { error: 'Only PDF, JPEG, PNG, and Word documents are allowed' }
+  }
+  if (file.size > MAX_SIZE_BYTES) {
+    return { error: 'File must be 10 MB or smaller' }
+  }
+
   const ext = file.name.split('.').pop()
   const path = `${employeeId}/${Date.now()}.${ext}`
 

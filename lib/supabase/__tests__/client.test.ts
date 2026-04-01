@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest'
 
-// Mock the supabase-js module
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({ auth: {}, from: vi.fn() })),
+// Mock the supabase-ssr module (client.ts uses createBrowserClient from @supabase/ssr)
+vi.mock('@supabase/ssr', () => ({
+  createBrowserClient: vi.fn(() => ({ auth: {}, from: vi.fn() })),
 }))
 
 describe('createBrowserClient', () => {

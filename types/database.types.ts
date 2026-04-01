@@ -153,6 +153,13 @@ export interface PerformanceCycle {
   created_at: string
 }
 
+export interface EmployeeDocument {
+  id: string
+  label: string
+  file_url: string
+  uploaded_at: string
+}
+
 export interface PerformanceEvaluation {
   id: string
   cycle_id: string

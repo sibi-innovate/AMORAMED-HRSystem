@@ -4,14 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { EmployeeForm } from '@/components/employees/employee-form'
 import { DocumentManager } from '@/components/employees/document-manager'
 import { updateEmployee, uploadDocument, deleteDocument } from '../actions'
-import type { Employee } from '@/types/database.types'
-
-interface EmployeeDocument {
-  id: string
-  label: string
-  file_url: string
-  uploaded_at: string
-}
+import type { Employee, EmployeeDocument } from '@/types/database.types'
 
 export default async function EmployeeDetailPage({
   params,

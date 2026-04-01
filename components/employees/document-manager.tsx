@@ -5,13 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { getSignedDocumentUrl } from '@/app/(dashboard)/employees/actions'
-
-interface EmployeeDocument {
-  id: string
-  label: string
-  file_url: string
-  uploaded_at: string
-}
+import type { EmployeeDocument } from '@/types/database.types'
 
 interface DocumentManagerProps {
   employeeId: string
