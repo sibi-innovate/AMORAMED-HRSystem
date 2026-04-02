@@ -17,6 +17,14 @@ describe('parseTimeToMinutes', () => {
   it('converts 07:37 to 457', () => {
     expect(parseTimeToMinutes('07:37')).toBe(457)
   })
+
+  it('throws for out-of-range time like 25:00', () => {
+    expect(() => parseTimeToMinutes('25:00')).toThrow('Time out of range')
+  })
+
+  it('throws for invalid time format', () => {
+    expect(() => parseTimeToMinutes('abc')).toThrow('Invalid time format')
+  })
 })
 
 describe('computeAttendanceFields', () => {

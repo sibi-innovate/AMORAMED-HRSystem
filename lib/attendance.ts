@@ -10,8 +10,11 @@ export function parseTimeToMinutes(time: string): number {
   if (!time || !/^\d{1,2}:\d{2}$/.test(time)) {
     throw new Error(`Invalid time format: "${time}"`)
   }
-  const [hours, minutes] = time.split(':').map(Number)
-  return hours * 60 + minutes
+  const [h, m] = time.split(':').map(Number)
+  if (h > 23 || m > 59) {
+    throw new Error(`Time out of range: "${time}"`)
+  }
+  return h * 60 + m
 }
 
 interface AttendanceFields {

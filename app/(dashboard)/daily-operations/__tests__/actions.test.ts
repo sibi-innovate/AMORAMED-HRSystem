@@ -51,12 +51,21 @@ describe('saveAttendanceRecords', () => {
   })
 
   it('upserts records and returns empty object on success', async () => {
+    const { revalidatePath } = await import('next/cache')
     const rows = [
       { employee_id: 'emp-1', status: 'present' as const, time_in: '07:00', time_out: '16:00', notes: null },
     ]
     const result = await saveAttendanceRecords('2026-04-01', rows)
     expect(mockUpsert).toHaveBeenCalledOnce()
     expect(result).toEqual({})
+    expect(revalidatePath).toHaveBeenCalledWith('/daily-operations')
+    expect(revalidatePath).toHaveBeenCalledWith('/dashboard')
+  })
+
+  it('returns error when date is in the future', async () => {
+    const futureDate = '2099-01-01'
+    const result = await saveAttendanceRecords(futureDate, [])
+    expect(result).toEqual({ error: 'Cannot save attendance for a future date' })
   })
 
   it('sets is_holiday true when date matches a holiday', async () => {
@@ -64,7 +73,7 @@ describe('saveAttendanceRecords', () => {
     const rows = [
       { employee_id: 'emp-1', status: 'present' as const, time_in: '07:00', time_out: '16:00', notes: null },
     ]
-    await saveAttendanceRecords('2026-04-09', rows)
+    await saveAttendanceRecords('2026-03-26', rows)
     const upsertArg = mockUpsert.mock.calls[0][0]
     expect(upsertArg[0].is_holiday).toBe(true)
     expect(upsertArg[0].holiday_type).toBe('regular')

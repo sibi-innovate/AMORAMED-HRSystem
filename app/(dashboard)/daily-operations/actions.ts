@@ -21,6 +21,9 @@ export async function saveAttendanceRecords(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
 
+  const today = new Date().toISOString().split('T')[0]
+  if (date > today) return { error: 'Cannot save attendance for a future date' }
+
   const { data: holiday } = await supabase
     .from('holidays')
     .select('type')
